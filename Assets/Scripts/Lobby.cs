@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using Lin;
 
 namespace Lin
 {
@@ -10,6 +11,8 @@ namespace Lin
     {
         // 遊戲版本的編碼, 可讓 Photon Server 做同款遊戲不同版本的區隔.
         string gameVersion = "1";
+
+        bool isConnecting;
 
         [Tooltip("遊戲室玩家人數上限. 當遊戲室玩家人數已滿額, 新玩家只能新開遊戲室來進行遊戲.")]
         [SerializeField]
@@ -37,6 +40,8 @@ namespace Lin
         // 與 Photon Cloud 連線
         public void Connect()
         {
+            isConnecting = true;
+
             progressLabel.SetActive(true);
             controlPanel.SetActive(false);
 
@@ -60,7 +65,8 @@ namespace Lin
 
             // 確認已連上 Photon Cloud
             // 隨機加入一個遊戲室
-            PhotonNetwork.JoinRandomRoom();
+            if (isConnecting)
+                PhotonNetwork.JoinRandomRoom();
         }
 
         public override void OnDisconnected(DisconnectCause cause)
@@ -86,6 +92,13 @@ namespace Lin
         public override void OnJoinedRoom()
         {
             Debug.Log("PUN 呼叫 OnJoinedRoom(), 已成功進入遊戲室中.");
+
+            if (PhotonNetwork.CurrentRoom.PlayerCount == 1)
+            {
+                Debug.Log("我是第一個進入遊戲室的玩家");
+                Debug.Log("我得主動做載入場景 'Room for 1' 的動作");
+                PhotonNetwork.LoadLevel("GamePlay");
+            }
         }
     }
 }
